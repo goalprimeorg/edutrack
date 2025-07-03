@@ -4,11 +4,15 @@ namespace App\Filament\Emis\Resources;
 
 use App\Filament\Emis\Resources\SchoolResource\Pages;
 use App\Models\School;
+use App\Models\State;
+use App\Models\LocalGovernmentArea;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class SchoolResource extends Resource
 {
@@ -20,12 +24,47 @@ class SchoolResource extends Resource
 
     public static function form(Form $form): Form
     {
+        $user = Auth::user();
+        $isSuperAdmin = Auth::guard('super-admin')->check();
+
+        $stateOptions = $isSuperAdmin 
+            ? State::pluck('name', 'id')
+            : State::where('id', $user->state_id)->pluck('name', 'id'); // Assuming user has state_id
+
         return $form
             ->schema([
+                Forms\Components\Select::make('state_id')
+                    ->label(__('State'))
+                    ->relationship('state', 'name')
+                    ->options($stateOptions)
+                    ->searchable()
+                    ->required()
+                    ->reactive()
+                    ->afterStateUpdated(function ($state, callable $set) {
+                        $set('local_government_area_id', null);
+                    })
+                    ->visible($isSuperAdmin), // Only super-admin sees state filter
+                Forms\Components\Select::make('local_government_area_id')
+                    ->label(__('Local Government Area'))
+                    ->options(function (Forms\Get $get) use ($user, $isSuperAdmin) {
+                        if (!$isSuperAdmin) {
+                            return LocalGovernmentArea::where('state_id', $user->state_id)
+                                ->pluck('name', 'id');
+                        }
+                        $stateId = $get('state_id');
+                        if (!$stateId) {
+                            return [];
+                        }
+                        return LocalGovernmentArea::where('state_id', $stateId)
+                            ->pluck('name', 'id');
+                    })
+                    ->searchable()
+                    ->required()
+                    ->disabled(function (Forms\Get $get) use ($isSuperAdmin) {
+                        return $isSuperAdmin && !$get('state_id');
+                    })
+                    ->dehydrated(),
                 Forms\Components\TextInput::make('name')
-                    ->required(),
-                Forms\Components\Hidden::make('local_government_area_id')
-                    ->default(auth()->user()->local_government_area_id)
                     ->required(),
                 Forms\Components\TextInput::make('address')
                     ->required()
@@ -57,22 +96,65 @@ class SchoolResource extends Resource
 
     public static function table(Table $table): Table
     {
+        $user = Auth::user();
+        $isSuperAdmin = Auth::guard('super-admin')->check();
+
         return $table
+            ->modifyQueryUsing(function (Builder $query) use ($user, $isSuperAdmin) {
+                if (!$isSuperAdmin) {
+                    $query->where('state_id', $user->state_id);
+                }
+                return $query;
+            })
             ->columns([
                 Tables\Columns\TextColumn::make('name')
-                    ->searchable(),
+                    ->label(__('School Name'))
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('state.name')
+                    ->label(__('State'))
+                    ->searchable()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('localGovernmentArea.name')
+                    ->label(__('Local Government Area'))
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('address')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('school_admin_email')
+                    ->label(__('Contact Email'))
+                    ->searchable(),
+                Tables\Columns\TextColumn::make('school_admin_phone')
+                    ->label(__('Contact Phone'))
+                    ->searchable(),
             ])
-            ->query(function () {
-                return School::where('local_government_area_id', auth()->user()->local_government_area_id);
-            })
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('state_id')
+                    ->label(__('State'))
+                    ->relationship('state', 'name')
+                    ->options(function () use ($user, $isSuperAdmin) {
+                        if (!$isSuperAdmin) {
+                            return State::where('id', $user->state_id)->pluck('name', 'id');
+                        }
+                        return State::pluck('name', 'id');
+                    })
+                    ->visible($isSuperAdmin), // Only super-admin sees state filter
+                Tables\Filters\SelectFilter::make('local_government_area_id')
+                    ->label(__('Local Government Area'))
+                    ->relationship('localGovernmentArea', 'name')
+                    ->options(function () use ($user, $isSuperAdmin) {
+                        if (!$isSuperAdmin) {
+                            return LocalGovernmentArea::where('state_id', $user->state_id)
+                                ->pluck('name', 'id');
+                        }
+                        return LocalGovernmentArea::pluck('name', 'id');
+                    })
+                    ->searchable(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
