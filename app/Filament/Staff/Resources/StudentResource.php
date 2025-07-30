@@ -106,6 +106,7 @@ class StudentResource extends Resource
                 Forms\Components\TextInput::make('guardian_phone_number')
                     ->tel()
                     ->required(),
+                    
             ]);
     }
 
