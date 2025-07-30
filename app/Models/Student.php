@@ -18,7 +18,7 @@ class Student extends AbstractModel
         'state_id',
         'local_government_area_id',
         'gender',
-        'is_student_dissabled',
+        'is_student_disabled',
         'disability',
         'registration_number',
         'guardian_first_name',
