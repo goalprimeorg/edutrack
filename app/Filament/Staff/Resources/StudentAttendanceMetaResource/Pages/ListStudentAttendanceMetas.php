@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\EmisHead\Resources\StudentAttendanceMetaResource\Pages;
+namespace App\Filament\Staff\Resources\StudentAttendanceMetaResource\Pages;
 
-use App\Filament\EmisHead\Resources\StudentAttendanceMetaResource;
+use App\Filament\Staff\Resources\StudentAttendanceMetaResource;
 use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
 

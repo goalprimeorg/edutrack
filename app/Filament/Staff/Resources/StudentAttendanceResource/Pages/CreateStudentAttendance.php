@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Filament\EmisHead\Resources\StudentAttendanceResource\Pages;
+namespace App\Filament\Staff\Resources\StudentAttendanceResource\Pages;
 
-use App\Filament\EmisHead\Resources\StudentAttendanceResource;
+use App\Filament\Staff\Resources\StudentAttendanceResource;
 use App\Models\Student;
 use App\Models\StudentAttendance;
 use App\Models\StudentAttendanceMeta;
