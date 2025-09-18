@@ -68,6 +68,8 @@ class SchoolStoreResource extends Resource
                     ->required()
                     ->numeric()
                     ->default(0),
+                
+                
             ]);
     }
 

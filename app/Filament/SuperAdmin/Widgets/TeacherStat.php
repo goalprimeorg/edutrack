@@ -2,7 +2,7 @@
 
 namespace App\Filament\SuperAdmin\Widgets;
 
-use App\Models\SchoolMetric;
+use App\Models\SchoolStaff;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use App\Models\LocalGovernmentArea;
 use App\Models\School;
@@ -30,11 +30,11 @@ class TeacherStat extends ApexChartWidget
     protected function getFormSchema(): array
     {
         return [
-
             Select::make('local_government_area_id')
                 ->label('Local Government Area')
                 ->options(LocalGovernmentArea::all()->pluck('name', 'id'))
                 ->searchable(),
+
             Select::make('school_id')
                 ->label('School')
                 ->options(function (Get $get) {
@@ -42,13 +42,11 @@ class TeacherStat extends ApexChartWidget
                         ->pluck('name', 'id');
                 })
                 ->searchable(),
-
         ];
     }
 
     /**
-     * Chart options (series, labels, types, size, animations...)
-     * https://apexcharts.com/docs/options
+     * Chart options
      *
      * @return array
      */
@@ -83,32 +81,24 @@ class TeacherStat extends ApexChartWidget
 
     public function getStat(array $filters): array
     {
-
-        $query = SchoolMetric::query();
-
+        $baseQuery = SchoolStaff::query();
+    
         if ($filters['local_government_area_id'] ?? false) {
-            $query->whereHas('school', function ($q) use ($filters) {
+            $baseQuery->whereHas('school', function ($q) use ($filters) {
                 $q->where('local_government_area_id', $filters['local_government_area_id']);
             });
         }
-
+    
         if ($filters['school_id'] ?? false) {
-            $query->where('school_id', $filters['school_id']);
+            $baseQuery->where('school_id', $filters['school_id']);
         }
-
-        // Fetch filtered metrics
-        $metric = $query->get([
-            'total_no_disabled_male_staff',
-            'total_no_disabled_female_staff',
-            'total_no_female_staff',
-            'total_no_male_staff'
-        ]);
-
+    
         return [
-            'maleD' => $metric->sum('total_no_disabled_male_staff'),
-            'femaleD' => $metric->sum('total_no_disabled_female_staff'),
-            'male' => $metric->sum('total_no_male_staff'),
-            'female' => $metric->sum('total_no_female_staff')
+            'male'    => (clone $baseQuery)->where('gender', 'Male')->count(),
+            'female'  => (clone $baseQuery)->where('gender', 'Female')->count(),
+            'maleD'   => (clone $baseQuery)->where('gender', 'Male')->where('is_staff_disabled', 1)->count(),
+            'femaleD' => (clone $baseQuery)->where('gender', 'Female')->where('is_staff_disabled', 1)->count(),
         ];
     }
+    
 }

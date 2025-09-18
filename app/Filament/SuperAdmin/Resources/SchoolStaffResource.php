@@ -72,6 +72,13 @@ class SchoolStaffResource extends Resource
                 Forms\Components\TextInput::make('phone_number')
                     ->tel()
                     ->required(),
+                Forms\Components\Select::make('is_staff_disabled')
+                    ->label('Is Staff Disabled?')
+                    ->options([
+                        1 => 'Yes',
+                        0 => 'No',
+                    ])
+                    ->native(false),
                 Forms\Components\TextInput::make('password')
                     ->password()
                     ->revealable()
