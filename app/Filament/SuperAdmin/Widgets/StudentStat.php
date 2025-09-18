@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 namespace App\Filament\SuperAdmin\Widgets;
 
-use App\Models\SchoolMetric;
+use App\Models\Student;
 use Leandrocfe\FilamentApexCharts\Widgets\ApexChartWidget;
 use App\Models\LocalGovernmentArea;
 use App\Models\School;
@@ -24,18 +24,18 @@ class StudentStat extends ApexChartWidget
      *
      * @var string|null
      */
-    protected static ?string $heading = 'Total Student Statistics';
+    protected static ?string $heading = 'Total Students Statistics';
 
     protected static bool $isLazy = false;
 
     protected function getFormSchema(): array
     {
         return [
-
             Select::make('local_government_area_id')
                 ->label('Local Government Area')
                 ->options(LocalGovernmentArea::all()->pluck('name', 'id'))
                 ->searchable(),
+
             Select::make('school_id')
                 ->label('School')
                 ->options(function (Get $get) {
@@ -43,7 +43,6 @@ class StudentStat extends ApexChartWidget
                         ->pluck('name', 'id');
                 })
                 ->searchable(),
-
         ];
     }
 
@@ -67,7 +66,6 @@ class StudentStat extends ApexChartWidget
                 'Female',
                 'Male with disability',
                 'Female with disability',
-
             ],
             'legend' => [
                 'labels' => [
@@ -77,35 +75,25 @@ class StudentStat extends ApexChartWidget
         ];
     }
 
-
     public function getStat(array $filters): array
     {
-
-        $query = SchoolMetric::query();
+        $baseQuery = Student::query();
 
         if ($filters['local_government_area_id'] ?? false) {
-            $query->whereHas('school', function ($q) use ($filters) {
+            $baseQuery->whereHas('school', function ($q) use ($filters) {
                 $q->where('local_government_area_id', $filters['local_government_area_id']);
             });
         }
 
         if ($filters['school_id'] ?? false) {
-            $query->where('school_id', $filters['school_id']);
+            $baseQuery->where('school_id', $filters['school_id']);
         }
 
-        // Fetch filtered metrics
-        $metric = $query->get([
-            'total_no_disabled_male_students',
-            'total_no_disabled_female_students',
-            'total_no_female_students',
-            'total_no_male_students'
-        ]);
-
         return [
-            'maleD' => $metric->sum('total_no_disabled_male_students'),
-            'femaleD' => $metric->sum('total_no_disabled_female_students'),
-            'male' => $metric->sum('total_no_male_students'),
-            'female' => $metric->sum('total_no_female_students')
+            'male'    => (clone $baseQuery)->where('gender', 'Male')->count(),
+            'female'  => (clone $baseQuery)->where('gender', 'Female')->count(),
+            'maleD'   => (clone $baseQuery)->where('gender', 'Male')->where('is_student_disabled', '1')->count(),
+            'femaleD' => (clone $baseQuery)->where('gender', 'Female')->where('is_student_disabled', '1')->count(),
         ];
     }
 }

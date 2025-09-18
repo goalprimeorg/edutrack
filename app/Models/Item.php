@@ -10,4 +10,14 @@ class Item extends AbstractModel
     {
         return $this->hasMany(Inventory::class);
     }
+
+    public function state()
+    {
+        return $this->belongsTo(State::class, 'state_id', 'id');
+    }
+
+    public function localGovernmentArea()
+    {
+        return $this->belongsTo(LocalGovernmentArea::class, 'local_government_area_id');
+    }
 }

@@ -56,6 +56,10 @@ return [
             'driver' => 'session',
             'provider' => 'partner',
         ],
+        'staff' => [
+            'driver' => 'session',
+            'provider' => 'staff',
+        ],
         'school-staff' => [
             'driver' => 'sanctum',
             'provider' => 'school-staff',
@@ -100,6 +104,10 @@ return [
         'partner' => [
             'driver' => 'eloquent',
             'model' => App\Models\Partner::class,
+        ],
+        'staff' => [
+            'driver' => 'eloquent',
+            'model' => App\Models\SchoolStaff::class,
         ],
         'school-staff' => [
             'driver' => 'eloquent',

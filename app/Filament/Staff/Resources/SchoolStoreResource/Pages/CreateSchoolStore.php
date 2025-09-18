@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Filament\Staff\Resources\SchoolStoreResource\Pages;
+
+use App\Filament\Staff\Resources\SchoolStoreResource;
+use Filament\Actions;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateSchoolStore extends CreateRecord
+{
+    protected static string $resource = SchoolStoreResource::class;
+
+    protected static bool $canCreateAnother = false;
+}

@@ -107,6 +107,30 @@ class StudentResource extends Resource
                 Forms\Components\TextInput::make('guardian_phone_number')
                     ->tel()
                     ->required(),
+                    Forms\Components\Select::make('is_student_disabled')
+                    ->label('Is Student Disabled?')
+                    ->options([
+                        1 => 'Yes',
+                        0 => 'No',
+                    ])
+                    ->native(false),
+        
+                Forms\Components\Select::make('disability')
+                    ->label('Type of Disability')
+                    ->options([
+                        'Hearing' => 'Hearing',
+                        'Cognitive' => 'Cognitive',
+                        'Physical' => 'Physical',
+                        'Hearing/Mutism' => 'Hearing/Mutism',
+                        'Physical/Hearing' => 'Physical/Hearing',
+                        'Physical/Hearing/Cognitive' => 'Physical/Hearing/Cognitive',
+                        'Physical/Psychopathy' => 'Physical/Psychopathy',
+                        'Psychopathy' => 'Psychopathy',
+                        'Sickle Cell' => 'Sickle Cell',
+                        'Visual' => 'Visual',
+                        'N/A' => 'N/A',
+                    ])
+                    ->native(false),
             ]);
     }
 
@@ -135,6 +159,13 @@ class StudentResource extends Resource
                     ->searchable(),
                 Tables\Columns\TextColumn::make('registration_number')
                     ->searchable(),
+                    Tables\Columns\TextColumn::make('is_student_disabled')
+                    ->label('Disabled?')
+                    ->sortable()
+                    ->formatStateUsing(fn ($state) => $state ? 'Yes' : 'No'),
+                
+                Tables\Columns\TextColumn::make('disability')
+                    ->label('Disability'),
                 Tables\Columns\TextColumn::make('guardian_first_name')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('guardian_last_name')
