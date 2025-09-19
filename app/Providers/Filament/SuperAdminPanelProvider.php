@@ -34,9 +34,9 @@ class SuperAdminPanelProvider extends PanelProvider
             ->brandLogo(asset('logo.png'))
             ->brandLogoHeight('80px')
             ->authGuard('super-admin')
-            ->login()
+            ->login(\App\Filament\SuperAdmin\Pages\LearnersLogin::class)
             ->colors([
-                'primary' => Color::Amber,
+                'primary' => Color::Green,
             ])
             
             ->discoverResources(in: app_path('Filament/SuperAdmin/Resources'), for: 'App\\Filament\\SuperAdmin\\Resources')
